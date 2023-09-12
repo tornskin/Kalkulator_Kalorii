@@ -98,7 +98,7 @@ def add_meal():
     return redirect('/')
 
 
-@app.route('/edit_meal/<int:meal_id>', methods=['POST'])
+@app.route('/edit_meal/<int:meal_id>', methods=['GET', 'POST'])
 def edit_meal(meal_id):
     meal = Meal.query.get(meal_id)
 
@@ -106,22 +106,25 @@ def edit_meal(meal_id):
         flash('Posiłek nie istnieje.')
         return redirect('/')
 
-    grams = float(request.form.get('grams'))
+    if request.method == 'POST':
+        grams = float(request.form.get('grams'))
 
-    if grams <= 0:
-        flash('Ilość gram musi być dodatnia.')
-    else:
-        # Przelicz składniki odżywcze na nową ilość gram
-        multiplier = grams / meal.grams
-        meal.grams = grams
-        meal.calories *= multiplier
-        meal.protein *= multiplier
-        meal.carbohydrates *= multiplier
-        meal.fat *= multiplier
-        db.session.commit()
-        flash('Posiłek został zaktualizowany.')
+        if grams <= 0:
+            flash('Ilość gram musi być dodatnia.')
+        else:
+            # Przelicz składniki odżywcze na nową ilość gram
+            multiplier = grams / meal.grams
+            meal.grams = grams
+            meal.calories *= multiplier
+            meal.protein *= multiplier
+            meal.carbohydrates *= multiplier
+            meal.fat *= multiplier
+            db.session.commit()
+            flash('Posiłek został zaktualizowany.')
+        return redirect('/')
 
-    return redirect('/')
+    return render_template('edit_meal.html', meal=meal)
+
 
 @app.route('/delete_meal/<int:meal_id>', methods=['POST'])
 def delete_meal(meal_id):
