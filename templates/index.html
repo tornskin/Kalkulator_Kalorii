@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista posiłków</title>
+</head>
+<body>
+    <h1>Lista posiłków</h1>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Nazwa</th>
+                <th>Ilość (g)</th>
+                <th>Kalorie</th>
+                <th>Białko</th>
+                <th>Węglowodany</th>
+                <th>Tłuszcz</th>
+                <th>Akcje</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for meal in meals %}
+            <tr>
+                <td>{{ meal.name }}</td>
+                <td>{{ meal.grams }}</td>
+                <td>{{ meal.calories }}</td>
+                <td>{{ meal.protein }}</td>
+                <td>{{ meal.carbohydrates }}</td>
+                <td>{{ meal.fat }}</td>
+                <td>
+                    <a href="/edit_meal/{{ meal.id }}">Edytuj</a>
+                    <form method="post" action="/delete_meal/{{ meal.id }}">
+                        <input type="hidden" name="_method" value="DELETE">
+                        <button type="submit">Usuń</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="/search">Wyszukaj posiłek</a>
+</body>
+</html>

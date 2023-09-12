@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wyniki wyszukiwania</title>
+</head>
+<body>
+    <h1>Wyniki wyszukiwania</h1>
+    
+    <form method="get" action="/search">
+        <label for="query">Wyszukaj produkt:</label>
+        <input type="text" id="query" name="query">
+        <button type="submit">Szukaj</button>
+    </form>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Nazwa</th>
+                <th>Kalorie</th>
+                <th>Białko</th>
+                <th>Węglowodany</th>
+                <th>Tłuszcz</th>
+                <th>Akcje</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for result in search_results %}
+            <tr>
+                <td>{{ result.name }}</td>
+                <td>{{ result.calories }}</td>
+                <td>{{ result.protein }}</td>
+                <td>{{ result.carbohydrates }}</td>
+                <td>{{ result.fat }}</td>
+                <td>
+                    <form method="post" action="/add_meal">
+                        <input type="hidden" name="selected_product" value="{{ result.name }}_{{ loop.index }}">
+                        <input type="hidden" name="search_results[{{ loop.index }}][0]" value="{{ result.name }}">
+                        <input type="hidden" name="search_results[{{ loop.index }}][1]" value="{{ result.calories }}">
+                        <input type="hidden" name="search_results[{{ loop.index }}][2]" value="{{ result.protein }}">
+                        <input type="hidden" name="search_results[{{ loop.index }}][3]" value="{{ result.carbohydrates }}">
+                        <input type="hidden" name="search_results[{{ loop.index }}][4]" value="{{ result.fat }}">
+                        <button type="submit">Dodaj</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <a href="/">Wróć do listy posiłków</a>
+</body>
+</html>
