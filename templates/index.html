@@ -31,7 +31,6 @@
                 <td class="editable-carbohydrates" data-meal-id="{{ meal.id }}">{{ meal.carbohydrates }}</td>
                 <td class="editable-fat" data-meal-id="{{ meal.id }}">{{ meal.fat }}</td>
                 <td>
-                    <a href="/edit_meal/{{ meal.id }}">Edytuj</a>
                     <form method="post" action="/delete_meal/{{ meal.id }}">
                         <input type="hidden" name="_method" value="DELETE">
                         <button type="submit">Usuń</button>
