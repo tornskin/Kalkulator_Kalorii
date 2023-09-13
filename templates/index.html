@@ -12,6 +12,7 @@
     <table>
         <thead>
             <tr>
+                <th>Data</th>
                 <th>Nazwa</th>
                 <th>Ilość (g)</th>
                 <th>Kalorie</th>
@@ -22,8 +23,10 @@
             </tr>
         </thead>
         <tbody>
-            {% for meal in meals %}
+            {% for date, meals in weekly_meals.items() %}
+            {% for meal in meals %} <!-- Dodaj pętlę dla posiłków w danym dniu -->
             <tr>
+                <td class="editable-date" data-meal-id="{{ meal.id }}">{{ meal.date }}</td>
                 <td>{{ meal.name }}</td>
                 <td class="editable-grams" data-meal-id="{{ meal.id }}">{{ meal.grams }}</td>
                 <td class="editable-calories" data-meal-id="{{ meal.id }}">{{ meal.calories }}</td>
@@ -38,13 +41,56 @@
                 </td>
             </tr>
             {% endfor %}
+            {% endfor %}
         </tbody>
     </table>
 
     <a href="/search">Wyszukaj posiłek</a>
 
     <script>
-        // Dodaj obsługę edycji bezpośrednio na liście
+        // Obsługa edycji daty
+        $('.editable-date').on('click', function () {
+            const mealId = $(this).data('meal-id');
+            const date = $(this).text();
+
+            // Zapisz oryginalną wartość
+            let originalDate = date;
+
+            // Zamień komórkę z datą na pole edycji
+            $(this).html(`<input type="date" class="edit-date" value="${date}">`);
+            const editDateInput = $('.edit-date');
+            editDateInput.focus().select();
+
+            // Obsługa zatwierdzania i anulowania edycji
+            editDateInput.on('blur', function () {
+                const newDate = $(this).val();
+                if (newDate !== originalDate) {
+                    // Jeśli data została zmieniona, zaktualizuj widok na stronie
+                    $(`.editable-date[data-meal-id="${mealId}"]`).text(newDate);
+
+                    // Wyślij żądanie POST zaktualizowania daty
+                    $.post(`/edit_meal_date/${mealId}`, { date: newDate }, function () {
+                        // Aktualizacja daty w bazie danych
+                        // Możesz dodać odpowiednią obsługę w swojej funkcji edit_meal_date
+                    });
+                } else {
+                    // W przypadku niezmienionej daty, przywróć poprzednią wartość
+                    $(`.editable-date[data-meal-id="${mealId}"]`).text(originalDate);
+                }
+            });
+
+            editDateInput.on('keydown', function (event) {
+                if (event.keyCode === 13) {
+                    // Wciśnięcie Enter zatwierdza zmiany
+                    $(this).blur();
+                } else if (event.keyCode === 27) {
+                    // Wciśnięcie Escape przywraca poprzednią wartość
+                    $(`.editable-date[data-meal-id="${mealId}"]`).text(originalDate);
+                }
+            });
+        });
+
+        // Dodaj obsługę edycji ilości gram
         $('.editable-grams').on('click', function () {
             const mealId = $(this).data('meal-id');
             const grams = parseFloat($(this).text());

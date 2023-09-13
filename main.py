@@ -122,6 +122,24 @@ def edit_meal(meal_id):
 
     return redirect('/')
 
+@app.route('/edit_meal_date/<int:meal_id>', methods=['POST'])
+def edit_meal_date(meal_id):
+    meal = Meal.query.get(meal_id)
+
+    if not meal:
+        flash('Posiłek nie istnieje.')
+    else:
+        new_date = request.form.get('date')
+        try:
+            new_date = datetime.strptime(new_date, '%Y-%m-%d').date()
+            meal.date = new_date
+            db.session.commit()
+            flash('Data posiłku została zaktualizowana.')
+        except ValueError:
+            flash('Nieprawidłowy format daty.')
+
+    return redirect('/')
+
 
 @app.route('/delete_meal/<int:meal_id>', methods=['POST'])
 def delete_meal(meal_id):
