@@ -63,7 +63,7 @@ def group_meals_by_day(meals):
 
 @app.route('/')
 def index():
-    meals = db.session.query(Meal).filter(Meal.date == datetime.now().date()).all()
+    meals = db.session.query(Meal).order_by(Meal.date.asc()).all()
     weekly_meals = group_meals_by_day(meals)
     return render_template('index.html', weekly_meals=weekly_meals)
 
@@ -107,7 +107,10 @@ def add_meal():
                 fat=fat * (grams / 100)
             )
             db.session.add(new_meal)
-            db.session.commit()
+            db.session.commit()  # Upewnij się, że jest zapis w bazie danych
+
+            # Dodaj logowanie
+            app.logger.info(f'Dodano nowy posiłek: {name}, {calories} kcal, {protein} g białka, {carbohydrates} g węglowodanów, {fat} g tłuszczu')
             flash('Posiłek został dodany!')
         else:
             flash('Błąd: Brak indeksu produktu.')
@@ -151,8 +154,12 @@ def edit_meal_date(meal_id):
         new_date = request.form.get('date')
         try:
             new_date = datetime.strptime(new_date, '%Y-%m-%d').date()
+
+            # Dodaj log przed zmianą daty
+            print(f'Zmiana daty dla posiłku o ID {meal_id}. Stara data: {meal.date}, Nowa data: {new_date}')
+
             meal.date = new_date
-            db.session.commit()
+            db.session.commit()  # Upewnij się, że jest zapis w bazie danych
             flash('Data posiłku została zaktualizowana.')
         except ValueError:
             flash('Nieprawidłowy format daty.')
