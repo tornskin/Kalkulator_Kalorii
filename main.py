@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, flash, redirect
 from flask_sqlalchemy import SQLAlchemy
-import datetime
+from datetime import datetime  # Dodaj import datetime
 import requests
 
 app = Flask(__name__)
@@ -15,7 +15,7 @@ class Meal(db.Model):
     protein = db.Column(db.Float, nullable=False)
     carbohydrates = db.Column(db.Float, nullable=False)
     fat = db.Column(db.Float, nullable=False)
-    date = db.Column(db.Date, default=datetime.datetime.now().date())
+    date = db.Column(db.Date, default=datetime.now().date())  # Użyj datetime.now() zamiast datetime.datetime.now()
     grams = db.Column(db.Float, nullable=False, default=100)  # Domyślnie 100 gramów
 
 def search_food(query):
@@ -52,10 +52,29 @@ def search_food(query):
         print(f'Wystąpił błąd podczas komunikacji z API: {e}')
         return []
 
+def group_meals_by_day(meals):
+    meals_by_day = {}
+    for meal in meals:
+        date = meal.date.strftime('%Y-%m-%d')
+        if date not in meals_by_day:
+            meals_by_day[date] = []
+        meals_by_day[date].append(meal)
+    return meals_by_day
+
 @app.route('/')
 def index():
-    meals = db.session.query(Meal).filter(Meal.date == datetime.datetime.now().date()).all()
-    return render_template('index.html', meals=meals)
+    meals = db.session.query(Meal).filter(Meal.date == datetime.now().date()).all()
+    weekly_meals = group_meals_by_day(meals)
+    return render_template('index.html', weekly_meals=weekly_meals)
+
+def group_meals_by_day(meals):
+    meals_by_day = {}
+    for meal in meals:
+        date = meal.date.strftime('%Y-%m-%d')
+        if date not in meals_by_day:
+            meals_by_day[date] = []
+        meals_by_day[date].append(meal)
+    return meals_by_day
 
 @app.route('/search')
 def search():
