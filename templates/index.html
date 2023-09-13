@@ -9,6 +9,7 @@
 <body>
     <h1>Lista posiłków</h1>
 
+    <!-- Dodaj tabelkę z posiłkami po lewej stronie -->
     <table>
         <thead>
             <tr>
@@ -24,7 +25,7 @@
         </thead>
         <tbody>
             {% for date, meals in weekly_meals.items() %}
-            {% for meal in meals %} <!-- Dodaj pętlę dla posiłków w danym dniu -->
+            {% for meal in meals %}
             <tr>
                 <td class="editable-date" data-meal-id="{{ meal.id }}">{{ meal.date }}</td>
                 <td>{{ meal.name }}</td>
@@ -45,123 +46,43 @@
         </tbody>
     </table>
 
+    <!-- Dodaj tabelkę z sumami wartości odżywczych po prawej stronie -->
+    <div style="float: right; margin-left: 20px;">
+        <h2>Sumy wartości odżywczych</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Dzień tygodnia</th>
+                    <th>Suma kalorii</th>
+                    <th>Suma białka</th>
+                    <th>Suma węglowodanów</th>
+                    <th>Suma tłuszczu</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for daily_total in daily_totals %}
+                <tr>
+                    <td>{{ daily_total.date }}</td>
+                    <td>{{ daily_total.day_of_week }}</td>
+                    <td>{{ daily_total.total_calories }}</td>
+                    <td>{{ daily_total.total_protein }}</td>
+                    <td>{{ daily_total.total_carbohydrates }}</td>
+                    <td>{{ daily_total.total_fat }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
     <a href="/search">Wyszukaj posiłek</a>
 
     <script>
         // Obsługa edycji daty
-        $('.editable-date').on('click', function () {
-            const mealId = $(this).data('meal-id');
-            const date = $(this).text();
-
-            // Zapisz oryginalną wartość
-            let originalDate = date;
-
-            // Zamień komórkę z datą na pole edycji
-            $(this).html(`<input type="date" class="edit-date" value="${date}">`);
-            const editDateInput = $('.edit-date');
-            editDateInput.focus().select();
-
-            // Obsługa zatwierdzania i anulowania edycji
-            editDateInput.on('blur', function () {
-                const newDate = $(this).val();
-                if (newDate !== originalDate) {
-                    // Jeśli data została zmieniona, zaktualizuj widok na stronie
-                    $(`.editable-date[data-meal-id="${mealId}"]`).text(newDate);
-
-                    // Wyślij żądanie POST zaktualizowania daty
-                    $.post(`/edit_meal_date/${mealId}`, { date: newDate }, function () {
-                        // Aktualizacja daty w bazie danych
-                        // Możesz dodać odpowiednią obsługę w swojej funkcji edit_meal_date
-                    });
-                } else {
-                    // W przypadku niezmienionej daty, przywróć poprzednią wartość
-                    $(`.editable-date[data-meal-id="${mealId}"]`).text(originalDate);
-                }
-            });
-
-            editDateInput.on('keydown', function (event) {
-                if (event.keyCode === 13) {
-                    // Wciśnięcie Enter zatwierdza zmiany
-                    $(this).blur();
-                } else if (event.keyCode === 27) {
-                    // Wciśnięcie Escape przywraca poprzednią wartość
-                    $(`.editable-date[data-meal-id="${mealId}"]`).text(originalDate);
-                }
-            });
-        });
+        // ...
 
         // Dodaj obsługę edycji ilości gram
-        $('.editable-grams').on('click', function () {
-            const mealId = $(this).data('meal-id');
-            const grams = parseFloat($(this).text());
-
-            // Zapisz oryginalną wartość
-            let originalGrams = grams;
-
-            // Znajdź pozostałe komórki z wartościami odżywczymi dla tego posiłku
-            const caloriesCell = $(`.editable-calories[data-meal-id="${mealId}"]`);
-            const proteinCell = $(`.editable-protein[data-meal-id="${mealId}"]`);
-            const carbohydratesCell = $(`.editable-carbohydrates[data-meal-id="${mealId}"]`);
-            const fatCell = $(`.editable-fat[data-meal-id="${mealId}"]`);
-
-            // Zapisz oryginalne wartości odżywcze
-            let originalCalories = parseFloat(caloriesCell.text());
-            let originalProtein = parseFloat(proteinCell.text());
-            let originalCarbohydrates = parseFloat(carbohydratesCell.text());
-            let originalFat = parseFloat(fatCell.text());
-
-            // Zamień komórkę z ilością gram na pole edycji
-            $(this).html(`<input type="number" class="edit-grams" value="${grams}" step="0.01">`);
-            const editGramsInput = $('.edit-grams');
-            editGramsInput.focus().select();
-
-            // Obsługa zatwierdzania i anulowania edycji
-            editGramsInput.on('blur', function () {
-                const newGrams = parseFloat($(this).val());
-                if (!isNaN(newGrams)) {
-                    // Przelicz inne wartości proporcjonalnie
-                    const multiplier = newGrams / originalGrams;
-                    originalGrams = newGrams;
-
-                    // Zaktualizuj widok na stronie
-                    $(`.editable-grams[data-meal-id="${mealId}"]`).text(newGrams);
-                    caloriesCell.text((originalCalories * multiplier).toFixed(2));
-                    proteinCell.text((originalProtein * multiplier).toFixed(2));
-                    carbohydratesCell.text((originalCarbohydrates * multiplier).toFixed(2));
-                    fatCell.text((originalFat * multiplier).toFixed(2));
-
-                    // Wyślij żądanie POST zaktualizowania ilości gram
-                    $.post(`/edit_meal/${mealId}`, { grams: newGrams }, function () {
-                        // Aktualizacja pozostałych wartości w bazie danych
-                        const updatedCalories = (originalCalories * multiplier).toFixed(2);
-                        const updatedProtein = (originalProtein * multiplier).toFixed(2);
-                        const updatedCarbohydrates = (originalCarbohydrates * multiplier).toFixed(2);
-                        const updatedFat = (originalFat * multiplier).toFixed(2);
-
-                        // Wyślij żądanie POST zaktualizowania pozostałych wartości
-                        $.post(`/update_nutritional_values/${mealId}`, {
-                            calories: updatedCalories,
-                            protein: updatedProtein,
-                            carbohydrates: updatedCarbohydrates,
-                            fat: updatedFat
-                        });
-                    });
-                } else {
-                    // W przypadku niepoprawnej ilości gram, przywróć poprzednią wartość
-                    $(`.editable-grams[data-meal-id="${mealId}"]`).text(originalGrams);
-                }
-            });
-
-            editGramsInput.on('keydown', function (event) {
-                if (event.keyCode === 13) {
-                    // Wciśnięcie Enter zatwierdza zmiany
-                    $(this).blur();
-                } else if (event.keyCode === 27) {
-                    // Wciśnięcie Escape przywraca poprzednią wartość
-                    $(`.editable-grams[data-meal-id="${mealId}"]`).text(originalGrams);
-                }
-            });
-        });
+        // ...
     </script>
 </body>
 </html>

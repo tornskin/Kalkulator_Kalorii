@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, flash, redirect
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import func
 from datetime import datetime  # Dodaj import datetime
 import requests
 
@@ -64,8 +65,28 @@ def group_meals_by_day(meals):
 @app.route('/')
 def index():
     meals = db.session.query(Meal).order_by(Meal.date.asc()).all()
-    weekly_meals = group_meals_by_day(meals)
-    return render_template('index.html', weekly_meals=weekly_meals)
+
+    # Grupuj posiłki według daty i oblicz sumy wartości odżywczych
+    meals_by_day = group_meals_by_day(meals)
+
+    # Oblicz sumy wartości odżywczych dla każdego dnia
+    daily_totals = []
+    for date, meals in meals_by_day.items():
+        total_calories = sum(meal.calories for meal in meals)
+        total_protein = sum(meal.protein for meal in meals)
+        total_carbohydrates = sum(meal.carbohydrates for meal in meals)
+        total_fat = sum(meal.fat for meal in meals)
+
+        daily_totals.append({
+            'date': date,
+            'day_of_week': datetime.strptime(date, '%Y-%m-%d').strftime('%A'),
+            'total_calories': total_calories,
+            'total_protein': total_protein,
+            'total_carbohydrates': total_carbohydrates,
+            'total_fat': total_fat,
+        })
+
+    return render_template('index.html', weekly_meals=meals_by_day, daily_totals=daily_totals)
 
 def group_meals_by_day(meals):
     meals_by_day = {}
